@@ -379,6 +379,7 @@ class TLModel(nn.Module):
 
         entropy, hiddens, all_hiddens = [], [], []
         data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])
+        print(data, data2)
         while i < data.size(0):
 
             hidden_times_U = torch.nn.functional.linear(hidden[0].repeat(self.ntoken, 1), weights_hh, bias_hh)
