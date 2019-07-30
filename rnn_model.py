@@ -189,7 +189,7 @@ class TLModel(nn.Module):
             idx = torch.LongTensor([-(nbuckets - ndynamic_buckets - i)]).cuda().repeat(seq_len_times_bsz)                   # (seq_len x bsz)
             emb = embedded_dropout(self.encoder, idx, dropout=self.dropoute if self.training else 0)
             tombstones_emb.append(emb.view(-1, 1, self.ninp))                                                               # (seq_len x bsz) x 1 x emb 
-            tombstones_bias.append(self.bias[idx]).view(-1, 1)                                                      # (seq_len x bsz) x 1
+            tombstones_bias.append(self.bias[idx].view(-1, 1))                                                             # (seq_len x bsz) x 1
 
         tombstones_emb = torch.cat(tombstones_emb, 1)   # (seq_len x bsz) x ntombstones x emb
         tombstones_bias = torch.cat(tombstones_bias, 1) # (seq_len x bsz) x ntombstones
