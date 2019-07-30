@@ -421,7 +421,7 @@ class TLModel(nn.Module):
                     all_hiddens.append(hiddens)
                     hiddens = []
             else:
-                hidden = output[data[argsort[i]] - self.buckets[bucket]].view(1, 1, -1)
+                hidden = output[data[i] - self.buckets[bucket]].view(1, 1, -1)
             hidden = repackage_hidden(hidden)
 
             i = i + 1
