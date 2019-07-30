@@ -6,7 +6,8 @@ import torch
 import torch.nn as nn
 
 from utils import data
-from rnn_model import RNNModel
+from rnn_model import TLModel
+from mos.model import RNNModel
 #from dyn_rnn import RNNModel
 
 from visualize.dump import dump, dump_hiddens, dump_words
@@ -119,7 +120,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
     ###############################################################################
 
     # build treelang model and load mos model
-    tl_model = RNNModel(ntokens, rnn_config, reg_config, sample_config, threshold_config, bucket_config)
+    tl_model = TLModel(ntokens, rnn_config, reg_config, sample_config, threshold_config, bucket_config)
     mos_name = 'PTB-20190727-084637/model.pt'
     with open(mos_name, 'rb') as f:
         mos_model = torch.load(f)

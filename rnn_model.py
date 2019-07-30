@@ -14,7 +14,7 @@ from eucl_distance.distance import eucl_distance, dot_distance
 from rnncells import LinearRNNCell, ELURNNCell, DExpRNNCell
 from threshold import hard_threshold, soft_threshold1, soft_threshold2, DynamicThreshold
 
-class RNNModel(nn.Module):
+class TLModel(nn.Module):
     """Container module with an encoder and a recurrent module."""
 
     def __init__(self, ntoken, rnn_config, reg_config, sample_config, threshold_config, bucket_config):
