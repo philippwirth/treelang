@@ -162,12 +162,10 @@ class TLModel(nn.Module):
 
         data2 = data.clone(); data2[data2 >= 10000] = 9999                      # ugly fix for padding tokens!!
         data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data2)])  # index of data in sorted array
-        print(data2)
         mask = None
         for idx in range(0, self.nbuckets):
             partial_mask = data2 >= self.buckets[idx+1]
             mask = mask + partial_mask.long() if mask is not None else partial_mask.long()
-            print(mask)
         return mask
         #buckets = data.clone() // 100
         #buckets[buckets >= len(self.buckets)-1] = 0
@@ -244,7 +242,6 @@ class TLModel(nn.Module):
         # reshape samples for indexing and precompute the inputs to nonlinearity
         ts_times_W = torch.nn.functional.linear(ts_emb, weights_ih, bias_ih) # (seq_len x _bsz) x ntombstones x nhid
         hiddens_times_U = torch.nn.functional.linear(raw_output, weights_hh, bias_hh) # (seq_len x bsz) x nhid
-        print(ts_times_W.size(), hiddens_times_U.size())
 
         # iterate over samples to update loss
         x = torch.zeros(ntombstones, seq_len_times_bsz).cuda()
@@ -266,7 +263,6 @@ class TLModel(nn.Module):
             x[i] = -d_neg
         
         softmaxed = torch.nn.functional.log_softmax(x, dim=0)
-        print(bucket_idxs.size(), softmaxed.size())
         softmaxed = softmaxed.gather(0, bucket_idxs.view(1,-1))
 
         return softmaxed
@@ -287,8 +283,6 @@ class TLModel(nn.Module):
         # reshape samples for indexing and precompute the inputs to nonlinearity
         samples_times_W = torch.nn.functional.linear(samples_emb, weights_ih, bias_ih)
         hiddens_times_U = torch.nn.functional.linear(raw_output, weights_hh, bias_hh)
-
-        print(samples_times_W.size(), hiddens_times_U.size())
         
         # iterate over samples to update loss
         for i in range(nsamples):
@@ -397,8 +391,6 @@ class TLModel(nn.Module):
             bucket = self._data2bucket(data[i], [argsort[i]])    # bucket of data in sorted array
             idx = (argsort[i] == data[i]).nonzero()         # idx of data in sorted array
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - self.buckets[bucket]
-            
-            print(self.buckets[bucket], idx, self.buckets[bucket] + bucket_size)
             
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
             #print(left_idx, softmaxed)
