@@ -254,7 +254,7 @@ class TLModel(nn.Module):
             if not self.threshold is None:
                 pass#d_neg = self._apply_threshold(d_neg, raw_output, self.b_w[ts[i]])
             d_neg = self._apply_temperature(d_neg)
-            d_neg = self._apply_bias(d_neg, ts_bias)
+            d_neg = self._apply_bias(d_neg, ts_bias[i])
         
             x[i] = -d_neg
         
