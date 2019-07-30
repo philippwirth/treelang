@@ -265,8 +265,6 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             batch += 1
             i += seq_len + 1
 
-            break
-
         return avrg_loss #/ train_data.size(0)
 
     # Loop over epochs.
