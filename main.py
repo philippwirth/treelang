@@ -120,6 +120,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
     # build treelang model and load mos model
     tl_model = RNNModel(ntokens, rnn_config, reg_config, sample_config, threshold_config, bucket_config)
+    mos_name = 'PTB-20190727-084637/model.pt'
     with open(mos_name, 'rb') as f:
         mos_model = torch.load(f)
 
