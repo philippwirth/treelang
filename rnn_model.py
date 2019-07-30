@@ -378,6 +378,7 @@ class TLModel(nn.Module):
         i = 0
 
         entropy, hiddens, all_hiddens = [], [], []
+        print(argsort)
         data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])
         print(data, data2)
         while i < data.size(0):
