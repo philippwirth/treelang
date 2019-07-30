@@ -252,9 +252,9 @@ class TLModel(nn.Module):
             d_neg = self.dist_fn(raw_output, output)
 
             if not self.threshold is None:
-                d_neg = self._apply_threshold(d_neg, raw_output, self.b_w[ts[i]])
+                pass#d_neg = self._apply_threshold(d_neg, raw_output, self.b_w[ts[i]])
             d_neg = self._apply_temperature(d_neg)
-            d_neg = self._apply_bias(d_neg, self.bias[ts[i]])
+            d_neg = self._apply_bias(d_neg, ts_bias)
         
             x[i] = -d_neg
         
@@ -292,7 +292,7 @@ class TLModel(nn.Module):
             d_neg = self.dist_fn(raw_output, output)
 
             if not self.threshold is None:
-                d_neg = self._apply_threshold(d_neg, raw_output, self.b_w[samples[:,i]])
+                pass#d_neg = self._apply_threshold(d_neg, raw_output, self.b_w[samples[:,i]])
             d_neg = self._apply_temperature(d_neg)
             d_neg = self._apply_bias(d_neg, self.bias[samples[:,i]])
         
@@ -378,7 +378,7 @@ class TLModel(nn.Module):
             ts_output = self._forward(ts_times_W[i], hidden_times_U[:self.nbuckets], hidden[0].repeat(self.nbuckets, 1))
             distance = self.dist_fn(hidden[0], ts_output)
             if not self.threshold is None:
-                distance = self._apply_threshold(distance, hidden[0], self.b_w[self.ntoken:])
+                pass#distance = self._apply_threshold(distance, hidden[0], self.b_w[self.ntoken:])
             distance = self._apply_temperature(distance)
             distance = self._apply_bias(distance, self.bias[self.ntoken:])
 
@@ -395,7 +395,7 @@ class TLModel(nn.Module):
 
             distance = self.dist_fn(hidden[0], output)     
             if not self.threshold is None:
-                distance = self._apply_threshold(distance, hidden[0], self.b_w[self.buckets[bucket]:self.buckets[bucket]+bucket_size])
+                pass#distance = self._apply_threshold(distance, hidden[0], self.b_w[self.buckets[bucket]:self.buckets[bucket]+bucket_size])
             distance = self._apply_temperature(distance)
             distance = self._apply_bias(distance, self.bias[self.buckets[bucket]:self.buckets[bucket]+bucket_size])
        
