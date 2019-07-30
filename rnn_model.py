@@ -409,8 +409,8 @@ class TLModel(nn.Module):
             distance = self._apply_bias(distance, self.bias[self.buckets[bucket]:self.buckets[bucket]+bucket_size])
        
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0) 
-            print(bucket, data[i])
-            raw_loss = raw_loss - softmaxed[data[argsort[i]] - self.buckets[bucket]].item()
+            print(bucket, self.buckets[bucket], data[i])
+            raw_loss = raw_loss - softmaxed[data[i] - self.buckets[bucket]].item()
 
             total_loss += raw_loss / data.size(0)
             entropy.append(raw_loss)
