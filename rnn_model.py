@@ -176,20 +176,18 @@ class TLModel(nn.Module):
         ndynamic_buckets = 12   # atm the first few
 
         seq_len_times_bsz = argsort.size(0)
-        print(argsort.size())
 
         tombstones_emb, tombstones_bias = [], []
         # tombstones for ndynamic buckets are the mean of the word embeddings in the bucket
         for i in range(ndynamic_buckets):
             idxs = argsort[:, self.buckets[i]:self.buckets[i+1]] if i < self.nbuckets-1 else argsort[:, self.buckets[i]:]   # (seq_len x bsz) x bucket_size
             emb = embedded_dropout(self.encoder, idxs, dropout=self.dropoute if self.training else 0)                       # (seq_len x bsz) x bucket_size x emb
-            print(emb.size())
             tombstones_emb.append(emb.mean(1).view(-1, 1, self.ninp))                                                       # (seq_len x bsz) x 1 x emb
             tombstones_bias.append(self.bias[idxs].mean(1).view(-1, 1))                                             # (seq_len x bsz) x 1
 
         for i in range(ndynamic_buckets, nbuckets):
             idx = torch.LongTensor([-(nbuckets - ndynamic_buckets - i)]).cuda().repeat(seq_len_times_bsz)                   # (seq_len x bsz)
-            emb = embedded_dropout(self.encoder, idx, dropout=self.dropouet if self.training else 0)
+            emb = embedded_dropout(self.encoder, idx, dropout=self.dropoute if self.training else 0)
             tombstones_emb.append(emb.view(-1, 1, self.ninp))                                                               # (seq_len x bsz) x 1 x emb 
             tombstones_bias.append(self.bias[idx]).view(-1, 1)                                                      # (seq_len x bsz) x 1
 
