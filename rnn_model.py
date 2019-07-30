@@ -244,7 +244,7 @@ class TLModel(nn.Module):
         for i in range(ntombstones):
 
             # compute output of negative samples
-            output = self._forward(ts_times_W[i], hiddens_times_U, raw_output)
+            output = self._forward(ts_times_W[:,i,:], hiddens_times_U, raw_output)
             output = self.lockdrop(output.view(1, output.size(0), -1), self.dropout)
             output = output[0]
 
