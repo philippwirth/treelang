@@ -158,7 +158,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
         while i < data_source.size(0)-1:
 
             seq_len = args.bptt
-            data = get_batch(train_data, i, args, seq_len=seq_len)
+            data = get_batch(data_source, i, args, seq_len=seq_len)
 
             # evaluate mos for probability ranks
             h_mos = repackage_hidden(h_mos)
@@ -172,6 +172,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             loss, h_tl, entropy = tl_model.evaluate(data, h_tl, argsort, eos_tokens)
 
             total_loss = total_loss + loss*seq_len
+            i = i + seq_len
 
         total_loss = total_loss / data_source.size(0)
 
@@ -262,6 +263,8 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             ###
             batch += 1
             i += seq_len + 1
+
+            break
 
         return avrg_loss #/ train_data.size(0)
 
