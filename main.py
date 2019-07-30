@@ -223,7 +223,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
             # evaluate mos on data
             h_mos = repackage_hidden(h_mos)
-            mos_data = data.clone(); mos_data[mos_data > 10000] = 10000
+            mos_data = data.clone(); mos_data[mos_data >= 10000] = 0 # ugly fix!!!!
             log_prob, h_mos = mos_model(data, h_mos)
 
             # get probability ranks from mos probability
