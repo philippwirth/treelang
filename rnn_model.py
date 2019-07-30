@@ -378,6 +378,7 @@ class TLModel(nn.Module):
         i = 0
 
         entropy, hiddens, all_hiddens = [], [], []
+        data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])
         while i < data.size(0):
 
             hidden_times_U = torch.nn.functional.linear(hidden[0].repeat(self.ntoken, 1), weights_hh, bias_hh)
@@ -398,7 +399,8 @@ class TLModel(nn.Module):
             raw_loss = -softmaxed[bucket].item()   # TODOOOO
 
             all_words_times_W_i = all_words_times_W[argsort[i]]
-            output = self._forward(all_words_times_W_i[self.buckets[bucket]:self.buckets[bucket]+bucket_size], hidden_times_U[:bucket_size], hidden[0].repeat(bucket_size, 1))
+            #print(all_words_times_W_i.size())
+            output = self._forward(all_words_times_W[self.buckets[bucket]:self.buckets[bucket]+bucket_size], hidden_times_U[:bucket_size], hidden[0].repeat(bucket_size, 1))
 
             if dump_hiddens: pass#hiddens.append(output[data[i]].data.cpu().numpy())
 
@@ -410,7 +412,7 @@ class TLModel(nn.Module):
        
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0) 
             print(bucket, self.buckets[bucket], bucket_size, data[i])
-            raw_loss = raw_loss - softmaxed[data[i] - self.buckets[bucket]].item()
+            raw_loss = raw_loss - softmaxed[data2[i] - self.buckets[bucket]].item()
 
             total_loss += raw_loss / data.size(0)
             entropy.append(raw_loss)
@@ -421,7 +423,7 @@ class TLModel(nn.Module):
                     all_hiddens.append(hiddens)
                     hiddens = []
             else:
-                hidden = output[data[i] - self.buckets[bucket]].view(1, 1, -1)
+                hidden = output[data2[i] - self.buckets[bucket]].view(1, 1, -1)
             hidden = repackage_hidden(hidden)
 
             i = i + 1
