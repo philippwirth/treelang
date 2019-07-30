@@ -219,7 +219,7 @@ class TLModel(nn.Module):
                 bucket_size = self.buckets[i+1] - self.buckets[i] if i < self.nbuckets-1 else self.ntoken - self.buckets[i]
                 weights = torch.ones(bucket_size).cuda()
                 sampler = torch.utils.data.WeightedRandomSampler(weights, self.nsamples)
-                samples_per_bucket[i] = torch.LongTensor(list(sampler)).cuda() + self.buckets[:,i]
+                samples_per_bucket[i] = torch.LongTensor(list(sampler)).cuda() + self.buckets[i]
 
             idxs = self._data2bucket(data, argsort)
             samples = samples_per_bucket[idxs]
@@ -254,8 +254,7 @@ class TLModel(nn.Module):
             if not self.threshold is None:
                 pass#d_neg = self._apply_threshold(d_neg, raw_output, self.b_w[ts[i]])
             d_neg = self._apply_temperature(d_neg)
-            print(d_neg.size(), ts_bias.size())
-            d_neg = self._apply_bias(d_neg, ts_bias[i])
+            d_neg = self._apply_bias(d_neg, ts_bias[:,i])
         
             x[i] = -d_neg
         
