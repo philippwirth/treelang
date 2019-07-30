@@ -176,6 +176,7 @@ class TLModel(nn.Module):
         ndynamic_buckets = 12   # atm the first few
 
         seq_len_times_bsz = argsort.size(0)
+        print(argsort.size())
 
         tombstones_emb, tombstones_bias = [], []
         # tombstones for ndynamic buckets are the mean of the word embeddings in the bucket
