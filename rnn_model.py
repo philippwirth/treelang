@@ -158,8 +158,9 @@ class RNNModel(nn.Module):
 
         return output
 
-    def _data2bucket(self, data):
+    def _data2bucket(self, data, argsort):
 
+        data = torch.cat([(argsort == d).nonzero() for d in data])  # index of data in sorted array
         mask = None
         for idx in range(0, self.nbuckets):
             partial_mask = data >= self.buckets[idx+1]
@@ -169,7 +170,33 @@ class RNNModel(nn.Module):
         #buckets[buckets >= len(self.buckets)-1] = 0
         #return buckets
 
-    def _sample_from_bucket(self, data, eval_whole_bucket=True):
+    def _get_tombstones(self, argsort):
+
+        nbuckets = self.nbuckets
+        ndynamic_buckets = 12   # atm the first few
+
+        seq_len_times_bsz = argsort.size(0)
+
+        tombstones_emb, tombstones_bias = [], []
+        # tombstones for ndynamic buckets are the mean of the word embeddings in the bucket
+        for i in range(ndynamic_buckets):
+            idxs = argsort[:, self.buckets[i]:self.buckets[i+1]] if i < self.nbuckets-1 else argsort[:, self.buckets[i]:]   # (seq_len x bsz) x bucket_size
+            emb = embedded_dropout(self.encoder, idxs, dropout=self.dropoute if self.training else 0)                       # (seq_len x bsz) x bucket_size x emb
+            tombstones_emb.append(emb.mean(1).view(-1, 1, self.ninp))                                                       # (seq_len x bsz) x 1 x emb
+            tombstones_bias.append(self.encoder.bias[idxs].mean(1).view(-1, 1))                                             # (seq_len x bsz) x 1
+
+        for i in range(ndynamic_buckets, nbuckets):
+            idx = torch.LongTensor([-(nbuckets - ndynamic_buckets - i)]).cuda().repeat(seq_len_times_bsz)                   # (seq_len x bsz)
+            emb = embedded_dropout(self.encoder, idx, dropout=self.dropouet if self.training else 0)
+            tombstones_emb.append(emb.view(-1, 1, self.ninp))                                                               # (seq_len x bsz) x 1 x emb 
+            tombstones_bias.append(self.encoder.bias[idx]).view(-1, 1)                                                      # (seq_len x bsz) x 1
+
+        tombstones_emb = torch.cat(tombstones_emb, 1)   # (seq_len x bsz) x ntombstones x emb
+        tombstones_bias = torch.cat(tombstones_bias, 1) # (seq_len x bsz) x ntombstones
+
+        return tombstones_emb, tombstones_bias
+
+    def _sample_from_bucket(self, data, eval_whole_bucket=False):
 
         data = data.view(-1)
         if eval_whole_bucket:
@@ -198,21 +225,17 @@ class RNNModel(nn.Module):
             samples = samples_per_bucket[idxs]
             return samples
 
-
-            # sample nsamples for each bucket
-            pass
-
-    def _logsoftmax_over_tombstones(self, bucket_idxs, raw_output, ts, ts_emb):
+    def _logsoftmax_over_tombstones(self, bucket_idxs, raw_output, ts_emb, ts_bias):
 
         seq_len_times_bsz = raw_output.size(0)
-        ntombstones = ts.size(0)
+        ntombstones = ts_emb.size(0)
          
         # only one layer for the moment
         weights_ih, bias_ih = self.rnn.module.weight_ih_l0, self.rnn.module.bias_ih_l0  
         weights_hh, bias_hh = self.rnn.module.weight_hh_l0, self.rnn.module.bias_hh_l0
 
         # reshape samples for indexing and precompute the inputs to nonlinearity
-        ts_times_W = torch.nn.functional.linear(ts_emb, weights_ih, bias_ih) # ntombstones x nhid
+        ts_times_W = torch.nn.functional.linear(ts_emb, weights_ih, bias_ih) # (seq_len x _bsz) x ntombstones x nhid
         hiddens_times_U = torch.nn.functional.linear(raw_output, weights_hh, bias_hh) # (seq_len x bsz) x nhid
 
         # iterate over samples to update loss
@@ -220,7 +243,7 @@ class RNNModel(nn.Module):
         for i in range(ntombstones):
 
             # compute output of negative samples
-            output = self._forward(ts_times_W[i].repeat(seq_len_times_bsz, 1), hiddens_times_U, raw_output)
+            output = self._forward(ts_times_W[i], hiddens_times_U, raw_output)
             output = self.lockdrop(output.view(1, output.size(0), -1), self.dropout)
             output = output[0]
 
@@ -277,7 +300,9 @@ class RNNModel(nn.Module):
         softmaxed = torch.nn.functional.log_softmax(x, dim=0)[0]
         return softmaxed
     
-    def forward(self, data, binary, hidden):
+    def forward(self, data, binary, hidden, argsort):
+
+        # argsort has size (seq_len x bsz) x ntokens
 
         # get batch size and sequence length
         seq_len, bsz = data.size()
@@ -305,11 +330,9 @@ class RNNModel(nn.Module):
         raw_output = raw_output[:-1].view(seq_len*bsz, -1) 
         
         # softmax over tombstones
-        tombstones = self.tombstones
-        tombstones_emb = embedded_dropout(self.encoder, tombstones, dropout=self.dropoute if self.training else 0) # ntombstones x emsize
+        tombstones_emb, tombstones_bias = self._get_tombstones(argsort)
         tombstones_emb = self.lockdrop(tombstones_emb, self.dropouti)
-    
-        ts_softmaxed = self._logsoftmax_over_tombstones(self._data2bucket(data), raw_output, tombstones, tombstones_emb) 
+        ts_softmaxed = self._logsoftmax_over_tombstones(self._data2bucket(data, argsort), raw_output, tombstones_emb, tombstones_bias) 
         
         # softmax over negative samples
         samples = self._sample_from_bucket(data)
@@ -327,7 +350,7 @@ class RNNModel(nn.Module):
         return loss
 
 
-    def evaluate(self, data, eos_tokens=None, dump_hiddens=False):
+    def evaluate(self, data, hidden, argsort, eos_tokens=None, dump_hiddens=False):
 
         # get weights and compute WX for all words
         weights_ih, bias_ih = self.rnn.module.weight_ih_l0, self.rnn.module.bias_ih_l0  # only one layer for the moment
@@ -338,11 +361,11 @@ class RNNModel(nn.Module):
 
         all_words_times_W = torch.nn.functional.linear(all_words, weights_ih, bias_ih)
         
-        ts = embedded_dropout(self.encoder, self.tombstones, dropout=self.dropoute if self.training else 0)
-        ts_times_W = torch.nn.functional.linear(ts, weights_ih, bias_ih)
+        ts_emb, ts_bias = self._get_tombstones(argsort)                         # seq_len x buckets x emb, seq_len
+        ts_times_W = torch.nn.functional.linear(ts_emb, weights_ih, bias_ih)    # seq_len x buckets x nhid
 
         # iterate over data set and compute loss
-        total_loss, hidden = 0, self.init_hidden(1)
+        total_loss = 0
         i = 0
 
         entropy, hiddens, all_hiddens = [], [], []
@@ -351,7 +374,7 @@ class RNNModel(nn.Module):
             hidden_times_U = torch.nn.functional.linear(hidden[0].repeat(self.ntoken, 1), weights_hh, bias_hh)
             
             # first tombstone probs
-            ts_output = self._forward(ts_times_W, hidden_times_U[:self.nbuckets], hidden[0].repeat(self.nbuckets, 1))
+            ts_output = self._forward(ts_times_W[i], hidden_times_U[:self.nbuckets], hidden[0].repeat(self.nbuckets, 1))
             distance = self.dist_fn(hidden[0], ts_output)
             if not self.threshold is None:
                 distance = self._apply_threshold(distance, hidden[0], self.b_w[self.ntoken:])
@@ -392,15 +415,9 @@ class RNNModel(nn.Module):
 
             i = i + 1
 
-        all_hiddens = all_hiddens if not eos_tokens is None else hiddens
-
-        if self.threshold_decr > 0:
-            self.threshold_max_r = max(self.threshold_min_r, self.threshold_max_r * 0.95)
+        #all_hiddens = all_hiddens if not eos_tokens is None else hiddens
         
-        if dump_hiddens:
-            return total_loss, np.array(entropy), all_hiddens
-        else:
-            return total_loss, np.array(entropy)
+        return total_loss, hidden, np.array(entropy)
 
 
     def init_hidden(self, bsz):

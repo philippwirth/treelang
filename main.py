@@ -78,12 +78,12 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
     def model_save(fn):
         with open(fn, 'wb') as f:
-            torch.save([model, optimizer], f)
+            torch.save([tl_model, optimizer], f)
 
     def model_load(fn):
-        global model, criterion, optimizer
+        global tl_model, criterion, optimizer
         with open(fn, 'rb') as f:
-            model, optimizer = torch.load(f)
+            tl_model, optimizer = torch.load(f)
 
     import os
     import hashlib
@@ -118,22 +118,25 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
     # Build the model
     ###############################################################################
 
-
-    model = RNNModel(ntokens, rnn_config, reg_config, sample_config, threshold_config, bucket_config)
+    # build treelang model and load mos model
+    tl_model = RNNModel(ntokens, rnn_config, reg_config, sample_config, threshold_config, bucket_config)
+    with open(mos_name, 'rb') as f:
+        mos_model = torch.load(f)
 
     ###
     if args.resume:
         print('Resuming model ...')
         model_load(args.resume)
         optimizer.param_groups[0]['lr'] = args.lr
-        model.dropouti, model.dropouth, model.dropout, args.dropoute = args.dropouti, args.dropouth, args.dropout, args.dropoute
+        tl_model.dropouti, tl_model.dropouth, tl_model.dropout, args.dropoute = args.dropouti, args.dropouth, args.dropout, args.dropoute
 
     ###
     if args.cuda:
-        model = model.cuda()
+        tl_model = tl_model.cuda()
+        mos_model = mos_model.cuda()
 
     ###
-    params = list(model.parameters())
+    params = list(tl_model.parameters())
     total_params = sum(x.size()[0] * x.size()[1] if len(x.size()) > 1 else x.size()[0] for x in params if x.size())
     print('Args:', args)
     print('Model total parameters:', total_params)
@@ -144,24 +147,51 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
     def evaluate(data_source, epoch, batch_size=1):
         # Turn on evaluation mode which disables dropout.
-        model.eval()
+        tl_model.eval()
+
+        total_loss, i = 0, 0
+        h_tl = tl_model.init_hidden(batch_size)
+        h_mos = mos_model.init_hidden(batch_size)
+        
+        while i data_source.size()-1:
+
+            seq_len = args.bptt
+            data = get_batch(train_data, i, args, seq_len=seq_len)
+
+            # evaluate mos for probability ranks
+            h_mos = repackage_hidden(h_mos)
+            log_prob, h_mos = mos_model(data, h_mos)
+
+            # get probability ranks from mos probability
+            _, argsort = torch.sort(log_prob, descending=True)
+            
+            # evaluate tl model
+            h_tl = repackage_hidden(h_tl)
+            loss, h_tl, entropy = tl_model.evaluate(data, h_tl, argsort, eos_tokens)
+
+            total_loss = total_loss + loss*seq_len
+
+        total_loss = total_loss / data_source.size(0)
+
+        '''     
 
         if args.dump_hiddens:
-            loss, entropy, hiddens = model.evaluate(data_source, eos_tokens, args.dump_hiddens)
+            loss, entropy, hiddens = tl_model.evaluate(data_source, eos_tokens, args.dump_hiddens)
             dump_hiddens(hiddens, 'hiddens_' + str(epoch))
         else:
-            loss, entropy = model.evaluate(data_source, eos_tokens)
+            loss, entropy = tl_model.evaluate(data_source, eos_tokens)
 
         #loss = loss.item()
         if args.dump_words:
-            W = model.rnn.module.weight_ih_l0.detach()
-            dump_words(torch.nn.functional.linear(model.encoder.weight.detach(), W).detach().cpu().numpy(), 'words_xW_' + str(epoch))
-            dump_words(model.encoder.weight.detach().cpu().numpy(), 'words_' + str(epoch))
+            W = tl_model.rnn.module.weight_ih_l0.detach()
+            dump_words(torch.nn.functional.linear(tl_model.encoder.weight.detach(), W).detach().cpu().numpy(), 'words_xW_' + str(epoch))
+            dump_words(tl_model.encoder.weight.detach().cpu().numpy(), 'words_' + str(epoch))
 
         if not args.dump_entropy is None:
             dump(entropy, args.dump_entropy + str(epoch))
 
-        return loss
+        '''
+        return total_loss
 
 
     def train():
@@ -171,37 +201,43 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
         start_time = time.time()
         ntokens = len(corpus.dictionary)
         batch, i = 0, 0
-        hidden = model.init_hidden(args.batch_size)
+
+        # need a hidden state for tl and one for mos
+        h_tl = tl_model.init_hidden(args.batch_size)
+        h_mos = mos_model.init_hidden(args.batch_size)
         while i < train_data.size(0)-1:
 
+            # get seq len from batch
             seq_len = seq_lens[batch] - 1
 
+            # adapt learning rate
             lr2 = optimizer.param_groups[0]['lr']
             optimizer.param_groups[0]['lr'] = lr2 * seq_len / args.bptt
-            model.train()
+            tl_model.train()
+
+            # get data and binary map
             data = get_batch(train_data, i, args, seq_len=seq_len)
             binary = get_batch(binary_data, i, args, seq_len=seq_len)
 
+            # evaluate mos on data
+            h_mos = repackage_hidden(h_mos)
+            log_prob, h_mos = mos_model(data, h_mos)
+
+            # get probability ranks from mos probability
+            _, argsort = torch.sort(log_prob, descending=True)
+
             # Starting each batch, we detach the hidden state from how it was previously produced.
-            # If we didn't, the model would try backpropagating all the way to start of the dataset.
-            hidden = model.init_hidden(args.batch_size)
-            hidden = repackage_hidden(hidden)
+            # If we didn't, the model would try backpropagating all the way to start of the dataset. 
+            h_tl = tl_model.init_hidden(args.batch_size)
+            h_tl = repackage_hidden(h_tl)
+
             optimizer.zero_grad()
 
             #raw_loss = model.train_crossentropy(data, eos_tokens)
-            raw_loss = model(data, binary, hidden)
+            raw_loss = tl_model(data, binary, hidden, argsort)
             avrg_loss = avrg_loss + (seq_len+1)*raw_loss.data / train_data.size(0)
 
             loss = raw_loss
-
-            '''
-            See what we can do here! We don't need the regularization as it is implicit!
-
-            # Activiation Regularization
-            if args.alpha: loss = loss + sum(args.alpha * dropped_rnn_h.pow(2).mean() for dropped_rnn_h in dropped_rnn_hs[-1:])
-            # Temporal Activation Regularization (slowness)
-            if args.beta: loss = loss + sum(args.beta * (rnn_h[1:] - rnn_h[:-1]).pow(2).mean() for rnn_h in rnn_hs[-1:])
-            '''
             loss.backward()
 
             # `clip_grad_norm` helps prevent the exploding gradient problem in RNNs / LSTMs.
@@ -239,8 +275,8 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
         # Ensure the optimizer is optimizing params, which includes both the model's weights as well as the criterion's weight (i.e. Adaptive Softmax)
         if args.optimizer == 'sgd':
             if threshold_config.lr > 0. and threshold_config.func == 'dynamic':
-                optimizer = torch.optim.SGD([{"params": list(model.rnn.parameters()) + list(model.encoder.parameters()) + list(model.decoder.parameters())},
-                                            {"params": list(model.threshold.parameters()), "lr":threshold_config.lr}], lr=args.lr, weight_decay=reg_config.wdecay)
+                optimizer = torch.optim.SGD([{"params": list(tl_model.rnn.parameters()) + list(tl_model.encoder.parameters()) + list(tl_model.decoder.parameters())},
+                                            {"params": list(tl_model.threshold.parameters()), "lr":threshold_config.lr}], lr=args.lr, weight_decay=reg_config.wdecay)
             else:
                 optimizer = torch.optim.SGD(params, lr=args.lr, weight_decay=reg_config.wdecay)
         if args.optimizer == 'adam':
@@ -257,8 +293,8 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             #print(u, s, v)
 
             #_, s, _= np.linalg.svd(model.rnn.module.weight_hh_l0.cpu().detach().numpy())
-            W_norm.append(model.rnn.module.weight_ih_l0.norm())
-            U_norm.append(model.rnn.module.weight_hh_l0.norm())
+            W_norm.append(tl_model.rnn.module.weight_ih_l0.norm())
+            U_norm.append(tl_model.rnn.module.weight_hh_l0.norm())
 
             #print(W_norm[-1])
             #print(U_norm[-1])
@@ -275,7 +311,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             # evaluate validation loss 
             if 't0' in optimizer.param_groups[0]:
                 tmp = {}
-                for prm in model.parameters():
+                for prm in tl_model.parameters():
                     #if 'ax' in optimizer.state[prm]:
                     tmp[prm] = prm.data.clone()
                     if 'ax' in optimizer.state[prm]:
@@ -294,7 +330,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
                     print('Saving Averaged!')
                     stored_loss = val_loss2
 
-                for prm in model.parameters():
+                for prm in tl_model.parameters():
                     prm.data = tmp[prm].clone()
 
             else:
@@ -339,8 +375,8 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
     dump(np.array(W_norm), 'W_norm')
     dump(np.array(U_norm), 'U_norm')
-    dump(model.rnn.module.weight_ih_l0.detach().cpu().numpy(), 'W')
-    dump(model.rnn.module.weight_hh_l0.detach().cpu().numpy(), 'U')
+    dump(tl_model.rnn.module.weight_ih_l0.detach().cpu().numpy(), 'W')
+    dump(tl_model.rnn.module.weight_hh_l0.detach().cpu().numpy(), 'U')
 
     return np.array(valid_loss), test_loss
 
