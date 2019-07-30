@@ -378,9 +378,7 @@ class TLModel(nn.Module):
         i = 0
 
         entropy, hiddens, all_hiddens = [], [], []
-        print(argsort)
-        data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])
-        print(data, data2)
+        #data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])
         while i < data.size(0):
 
             hidden_times_U = torch.nn.functional.linear(hidden[0].repeat(self.ntoken, 1), weights_hh, bias_hh)
@@ -394,8 +392,12 @@ class TLModel(nn.Module):
             distance = self._apply_bias(distance, self.bias[self.ntoken:])
 
             #print(i, data.size(), data[i] // 10)
-            bucket = self._data2bucket(data[i], argsort)
+            bucket = self._data2bucket(data[i], argsort)    # bucket of data in sorted array
+            idx = (argsort[i] == data[i]).nonzero()         # idx of data in sorted array
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - self.buckets[bucket]
+            
+            print(self.buckets[bucket], idx, self.buckets[bucket] + bucket_size)
+            
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
             #print(left_idx, softmaxed)
             raw_loss = -softmaxed[bucket].item()   # TODOOOO
