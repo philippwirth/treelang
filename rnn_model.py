@@ -20,7 +20,7 @@ class TLModel(nn.Module):
     def __init__(self, ntoken, rnn_config, reg_config, sample_config, threshold_config, bucket_config):
 
         initrange = 0.1
-        super(RNNModel, self).__init__()
+        super(TLModel, self).__init__()
         self.ntoken = ntoken
 
         # rnn configs
