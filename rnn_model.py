@@ -160,10 +160,11 @@ class TLModel(nn.Module):
 
     def _data2bucket(self, data, argsort):
 
-        data = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])  # index of data in sorted array
+        data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])  # index of data in sorted array
+        print(data.size(), data2.size(), argsort.size())
         mask = None
         for idx in range(0, self.nbuckets):
-            partial_mask = data >= self.buckets[idx+1]
+            partial_mask = data2 >= self.buckets[idx+1]
             mask = mask + partial_mask.long() if mask is not None else partial_mask.long()
         return mask
         #buckets = data.clone() // 100
