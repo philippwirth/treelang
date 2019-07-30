@@ -237,7 +237,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             optimizer.zero_grad()
 
             #raw_loss = model.train_crossentropy(data, eos_tokens)
-            raw_loss = tl_model(data, binary, hidden, argsort)
+            raw_loss = tl_model(data, binary, h_tl, argsort)
             avrg_loss = avrg_loss + (seq_len+1)*raw_loss.data / train_data.size(0)
 
             loss = raw_loss
