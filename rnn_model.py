@@ -196,7 +196,7 @@ class TLModel(nn.Module):
 
         return tombstones_emb, tombstones_bias
 
-    def _sample_from_bucket(self, data, eval_whole_bucket=False):
+    def _sample_from_bucket(self, data, argsort, eval_whole_bucket=False):
 
         data = data.view(-1)
         if eval_whole_bucket:
@@ -221,7 +221,7 @@ class TLModel(nn.Module):
                 sampler = torch.utils.data.WeightedRandomSampler(weights, self.nsamples)
                 samples_per_bucket[i] = torch.LongTensor(list(sampler)).cuda() + self.buckets[i]
 
-            idxs = self._data2bucket(data)
+            idxs = self._data2bucket(data, argsort)
             samples = samples_per_bucket[idxs]
             return samples
 
@@ -254,6 +254,7 @@ class TLModel(nn.Module):
             if not self.threshold is None:
                 pass#d_neg = self._apply_threshold(d_neg, raw_output, self.b_w[ts[i]])
             d_neg = self._apply_temperature(d_neg)
+            print(d_neg.size(), ts_bias.size())
             d_neg = self._apply_bias(d_neg, ts_bias[i])
         
             x[i] = -d_neg
@@ -336,7 +337,7 @@ class TLModel(nn.Module):
         ts_softmaxed = self._logsoftmax_over_tombstones(self._data2bucket(data.view(-1), argsort), raw_output, tombstones_emb, tombstones_bias) 
         
         # softmax over negative samples
-        samples = self._sample_from_bucket(data)
+        samples = self._sample_from_bucket(data, argsort)
         samples_emb = embedded_dropout(self.encoder, samples, dropout=self.dropoute if self.training else 0)
         samples_emb = self.lockdrop(samples_emb, self.dropouti)
         
