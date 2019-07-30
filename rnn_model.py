@@ -223,6 +223,7 @@ class TLModel(nn.Module):
                 samples_per_bucket[i] = torch.LongTensor(list(sampler)).cuda() + self.buckets[i]
 
             idxs = self._data2bucket(data, argsort)
+            print(idxs)
             samples = samples_per_bucket[idxs]
             print(samples.size())
             return samples
