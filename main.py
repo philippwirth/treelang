@@ -228,6 +228,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
             # get probability ranks from mos probability
             _, argsort = torch.sort(log_prob, descending=True)
+            argsort = argsort.view(-1, 10000)
 
             # Starting each batch, we detach the hidden state from how it was previously produced.
             # If we didn't, the model would try backpropagating all the way to start of the dataset. 
