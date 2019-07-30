@@ -160,9 +160,8 @@ class TLModel(nn.Module):
 
     def _data2bucket(self, data, argsort):
 
-        data2 = data.clone(); data2[data2 >= 10000] = 9999
+        data2 = data.clone(); data2[data2 >= 10000] = 9999                      # ugly fix for padding tokens!!
         data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data2)])  # index of data in sorted array
-        print(data.size(), data2.size(), argsort.size())
         mask = None
         for idx in range(0, self.nbuckets):
             partial_mask = data2 >= self.buckets[idx+1]
@@ -283,6 +282,8 @@ class TLModel(nn.Module):
         # reshape samples for indexing and precompute the inputs to nonlinearity
         samples_times_W = torch.nn.functional.linear(samples_emb, weights_ih, bias_ih)
         hiddens_times_U = torch.nn.functional.linear(raw_output, weights_hh, bias_hh)
+
+        print(samples_times_W.size(), hiddens_times_U.size())
         
         # iterate over samples to update loss
         for i in range(nsamples):
