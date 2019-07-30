@@ -160,7 +160,8 @@ class TLModel(nn.Module):
 
     def _data2bucket(self, data, argsort):
 
-        data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data) if d < 10000 else 10000])  # index of data in sorted array
+        data2 = data.clone(); data2[data2 >= 10000] = 9999
+        data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data2)])  # index of data in sorted array
         print(data.size(), data2.size(), argsort.size())
         mask = None
         for idx in range(0, self.nbuckets):
