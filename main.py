@@ -256,7 +256,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
                 print('| epoch {:3d} | {:5d}/{:5d} batches | lr {:05.5f} | ms/batch {:5.2f} | '
                         'loss {:5.2f} | ppl {:8.2f} | bpc {:8.3f}'.format(
                     epoch, batch, len(train_data) // args.bptt, optimizer.param_groups[0]['lr'],
-                    elapsed * 1000 / args.log_interval, cur_loss, cur_loss, cur_loss / math.log(2)))
+                    elapsed * 1000 / args.log_interval, cur_loss, np.exp(cur_loss), cur_loss / math.log(2)))
                 total_loss = 0
                 start_time = time.time()
             ###

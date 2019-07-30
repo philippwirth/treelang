@@ -224,7 +224,10 @@ class TLModel(nn.Module):
 
             idxs = self._data2bucket(data, argsort)
             samples = samples_per_bucket[idxs.view(-1)]
-            print(samples.size())
+
+            # "translate samples"
+            for i in range(argsort.size(0)):
+                samples[i] = argsort[i, samples[i]]
             return samples
 
     def _logsoftmax_over_tombstones(self, bucket_idxs, raw_output, ts_emb, ts_bias):
