@@ -260,6 +260,7 @@ class TLModel(nn.Module):
             x[i] = -d_neg
         
         softmaxed = torch.nn.functional.log_softmax(x, dim=0)
+        print(bucket_idxs.size(), softmaxed.size())
         softmaxed = softmaxed.gather(0, bucket_idxs.view(1,-1))
 
         return softmaxed
