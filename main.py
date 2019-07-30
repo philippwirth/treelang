@@ -157,7 +157,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
         
         while i < data_source.size(0)-1:
 
-            seq_len = 1
+            seq_len = 70
             data = get_batch(data_source, i, args, seq_len=seq_len)
 
             # evaluate mos for probability ranks
