@@ -219,7 +219,7 @@ class TLModel(nn.Module):
                 bucket_size = self.buckets[i+1] - self.buckets[i] if i < self.nbuckets-1 else self.ntoken - self.buckets[i]
                 weights = torch.ones(bucket_size).cuda()
                 sampler = torch.utils.data.WeightedRandomSampler(weights, self.nsamples)
-                samples_per_bucket[i] = torch.LongTensor(list(sampler)).cuda() + self.buckets[i]
+                samples_per_bucket[i] = torch.LongTensor(list(sampler)).cuda() + self.buckets[:,i]
 
             idxs = self._data2bucket(data, argsort)
             samples = samples_per_bucket[idxs]
