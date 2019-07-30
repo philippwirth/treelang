@@ -160,7 +160,7 @@ class TLModel(nn.Module):
 
     def _data2bucket(self, data, argsort):
 
-        data = torch.cat([(argsort == d).nonzero() for d in data])  # index of data in sorted array
+        data = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])  # index of data in sorted array
         mask = None
         for idx in range(0, self.nbuckets):
             partial_mask = data >= self.buckets[idx+1]
@@ -237,6 +237,7 @@ class TLModel(nn.Module):
         # reshape samples for indexing and precompute the inputs to nonlinearity
         ts_times_W = torch.nn.functional.linear(ts_emb, weights_ih, bias_ih) # (seq_len x _bsz) x ntombstones x nhid
         hiddens_times_U = torch.nn.functional.linear(raw_output, weights_hh, bias_hh) # (seq_len x bsz) x nhid
+        print(ts_times_W.size(), hiddens_times_U.size())
 
         # iterate over samples to update loss
         x = torch.zeros(ntombstones, seq_len_times_bsz).cuda()
@@ -332,7 +333,7 @@ class TLModel(nn.Module):
         # softmax over tombstones
         tombstones_emb, tombstones_bias = self._get_tombstones(argsort)
         tombstones_emb = self.lockdrop(tombstones_emb, self.dropouti)
-        ts_softmaxed = self._logsoftmax_over_tombstones(self._data2bucket(data.view(-1), argsort), raw_output, tombstones_emb, tombstones_bias) 
+        ts_softmaxed = self._logsoftmax_over_tombstones(self._data2bucket(data, argsort), raw_output, tombstones_emb, tombstones_bias) 
         
         # softmax over negative samples
         samples = self._sample_from_bucket(data)
