@@ -182,6 +182,7 @@ class TLModel(nn.Module):
         for i in range(ndynamic_buckets):
             idxs = argsort[:, self.buckets[i]:self.buckets[i+1]] if i < self.nbuckets-1 else argsort[:, self.buckets[i]:]   # (seq_len x bsz) x bucket_size
             emb = embedded_dropout(self.encoder, idxs, dropout=self.dropoute if self.training else 0)                       # (seq_len x bsz) x bucket_size x emb
+            print(emb.size())
             tombstones_emb.append(emb.mean(1).view(-1, 1, self.ninp))                                                       # (seq_len x bsz) x 1 x emb
             tombstones_bias.append(self.bias[idxs].mean(1).view(-1, 1))                                             # (seq_len x bsz) x 1
 
