@@ -154,7 +154,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
         h_tl = tl_model.init_hidden(batch_size)
         h_mos = mos_model.init_hidden(batch_size)
         
-        while i data_source.size()-1:
+        while i < data_source.size()-1:
 
             seq_len = args.bptt
             data = get_batch(train_data, i, args, seq_len=seq_len)
