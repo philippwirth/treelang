@@ -229,7 +229,7 @@ class TLModel(nn.Module):
     def _logsoftmax_over_tombstones(self, bucket_idxs, raw_output, ts_emb, ts_bias):
 
         seq_len_times_bsz = raw_output.size(0)
-        ntombstones = ts_emb.size(0)
+        ntombstones = self.nbuckets
          
         # only one layer for the moment
         weights_ih, bias_ih = self.rnn.module.weight_ih_l0, self.rnn.module.bias_ih_l0  
