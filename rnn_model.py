@@ -163,8 +163,9 @@ class TLModel(nn.Module):
         data2 = data.clone(); data2[data2 >= 20] = 19#10000] = 9999             # ugly fix for padding tokens!!
         data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data2)])  # index of data in sorted array
         mask = None
+        print(data2)
         for idx in range(0, self.nbuckets):
-            partial_mask = data2 > self.buckets[idx+1]
+            partial_mask = data2 >= self.buckets[idx+1]
             mask = mask + partial_mask.long() if mask is not None else partial_mask.long()
         print(mask)
         return mask
