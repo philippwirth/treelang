@@ -158,7 +158,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
         data_keep = 5*torch.ones(1,1).cuda().long()
         while i < data_source.size(0)-1:
 
-            seq_len = 1     # one to many (data has size 2, need this because targets!)
+            seq_len = 4     # one to many (data has size 2, need this because targets!)
             data = get_batch(data_source, i, args, seq_len=seq_len)
             mos_data = torch.cat((data_keep, data), 0)[:-1] # no need to include eos token in mos_data
             data_keep = data[-1].view(1,1)
@@ -167,7 +167,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             h_mos = repackage_hidden(h_mos)
             log_prob, h_mos = mos_model(mos_data, h_mos)
 
-            print(torch.exp(log_prob), data.view(-1), mos_data.view(-1))
+            #print(torch.exp(log_prob), data.view(-1), mos_data.view(-1))
 
             # cut log_probs to actual sequence length
             #log_prob = log_prob[:-1]
