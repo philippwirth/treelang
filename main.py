@@ -172,6 +172,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             # cut log_probs to actual sequence length
             #log_prob = log_prob[:-1]
 
+            print(data, mos_data)
             # get probability ranks from mos probability
             #print(torch.exp(log_prob), data[1:])
             _, argsort = torch.sort(log_prob, descending=True)
@@ -246,6 +247,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             argsort = argsort.view(-1, 20)#10000)
 
             #print(argsort.size())
+            print(data, mos_data)
 
             # Starting each batch, we detach the hidden state from how it was previously produced.
             # If we didn't, the model would try backpropagating all the way to start of the dataset. 
@@ -278,7 +280,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
                 start_time = time.time()
             ###
             batch += 1
-            i += seq_len + 1
+            i += seq_len
 
             #break
 
