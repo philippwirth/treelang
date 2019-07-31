@@ -159,21 +159,24 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
         
         while i < data_source.size(0)-1:
 
-            seq_len = 1 - 1
+            seq_len = 1     # one to many (data has size 2, need this because targets!)
             data = get_batch(data_source, i, args, seq_len=seq_len)
 
             # evaluate mos for probability ranks
             h_mos = repackage_hidden(h_mos)
             log_prob, h_mos = mos_model(data, h_mos)
 
+            # cut log_probs to actual sequence length
+            log_prob = log_prob[:-1]
+
             # get probability ranks from mos probability
-            print(torch.exp(log_prob), data)
+            print(torch.exp(log_prob), data[:seq_len])
             _, argsort = torch.sort(log_prob, descending=True)
             argsort = argsort.view(-1, 20)##10000) #
             
             # evaluate tl model
             h_tl = repackage_hidden(h_tl)
-            loss, h_tl, entropy = tl_model.evaluate(data, h_tl, argsort, eos_tokens)
+            loss, h_tl, entropy = tl_model.evaluate(data[:seq_len], h_tl, argsort, eos_tokens)
 
             total_loss = total_loss + loss* min(seq_len, data_source.size(0))
             i = i + seq_len
