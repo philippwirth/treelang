@@ -428,6 +428,7 @@ class TLModel(nn.Module):
 
         #all_hiddens = all_hiddens if not eos_tokens is None else hiddens
         
+        print(total_loss)
         return total_loss, hidden, np.array(entropy)
 
 
