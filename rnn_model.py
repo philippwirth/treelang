@@ -350,7 +350,7 @@ class TLModel(nn.Module):
         samples_emb = self.lockdrop(samples_emb, self.dropouti)
         
         ns_softmaxed = self._logsoftmax_over_neg_samples(d_pos, raw_output, samples, samples_emb)
-        binary2 = torch.ones(ns_softmaxed.size()).cuda().long()
+        binary2 = torch.ones(ns_softmaxed.size()).cuda()
         binary2[(self._data2bucket(data.view(-1), argsort) < 3).nonzero()] = 1
         ns_softmaxed = ns_softmaxed * binary2
         #p_per_b = torch.FloatTensor([1., 1., 0.33333, 0.2, 0.1]).cuda()
