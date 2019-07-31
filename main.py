@@ -176,7 +176,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             # get probability ranks from mos probability
             #print(torch.exp(log_prob), data[1:])
             _, argsort = torch.sort(log_prob, descending=True)
-            argsort = argsort.view(-1, 20)##10000) #
+            argsort = argsort.view(-1, 10000) #
             
             # evaluate tl model
             h_tl = repackage_hidden(h_tl)
@@ -236,7 +236,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
             # evaluate mos on data
             h_mos = repackage_hidden(h_mos)
-            mos_data = torch.cat((data_keep, data),0)[:-1]; mos_data[mos_data >= 20] = 0 # ugly fix!!!!
+            mos_data = torch.cat((data_keep, data),0)[:-1]; mos_data[mos_data >= 10000] = 0 # ugly fix!!!!
             log_prob, h_mos = mos_model(mos_data, h_mos)
 
             #print(torch.exp(log_prob))
@@ -244,7 +244,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
             # get probability ranks from mos probability
             _, argsort = torch.sort(log_prob, descending=True)
-            argsort = argsort.view(-1, 20)#10000)
+            argsort = argsort.view(-1, 10000)
 
             #print(argsort.size())
 
