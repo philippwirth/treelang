@@ -375,7 +375,7 @@ class TLModel(nn.Module):
 
         entropy, hiddens, all_hiddens = [], [], []
         #data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])
-        p_per_b = torch.FloatTensor([0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.07, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.00001]).cuda()
+        buckets = []
         while i < data.size(0):
 
             hidden_times_U = torch.nn.functional.linear(hidden[0].repeat(self.ntoken, 1), weights_hh, bias_hh)
@@ -390,6 +390,7 @@ class TLModel(nn.Module):
 
             #print(i, data.size(), data[i] // 10)
             bucket = self._data2bucket(data[i], [argsort[i]])    # bucket of data in sorted array
+            buckets.append(bucket)
             idx = (argsort[i] == data[i]).nonzero()         # idx of data in sorted array
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - self.buckets[bucket]
             
@@ -426,6 +427,7 @@ class TLModel(nn.Module):
 
             i = i + 1
 
+        print(bucket)
         #all_hiddens = all_hiddens if not eos_tokens is None else hiddens
         
         print(total_loss)
