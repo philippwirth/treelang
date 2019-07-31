@@ -165,7 +165,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             log_prob, h_mos = mos_model(data, h_mos)
 
             # get probability ranks from mos probability
-            print(log_prob[data], data)
+            print(log_prob, data)
             _, argsort = torch.sort(log_prob, descending=True)
             argsort = argsort.view(-1, 20)##10000) #
             
