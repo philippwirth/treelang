@@ -357,7 +357,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
                 if args.optimizer == 'sgd' and 't0' not in optimizer.param_groups[0] and (len(best_val_loss)>args.nonmono and val_loss > min(best_val_loss[:-args.nonmono])):
                     print('Switching to ASGD')
-                    optimizer = torch.optim.ASGD(model.parameters(), lr=args.lr, t0=0, lambd=0., weight_decay=reg_config.wdecay)
+                    optimizer = torch.optim.ASGD(tl_model.parameters(), lr=args.lr, t0=0, lambd=0., weight_decay=reg_config.wdecay)
 
                 if epoch in args.when:
                     print('Saving model before learning rate decreased')
