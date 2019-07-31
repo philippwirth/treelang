@@ -397,7 +397,7 @@ class TLModel(nn.Module):
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - self.buckets[bucket]
             
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
-            print(torch.exp(softmaxed), bucket)
+            print(-softmaxed[bucket], bucket)
             raw_loss = -softmaxed[bucket].item()   # TODOOOO
 
             all_words_times_W_i = all_words_times_W[argsort[i]]
@@ -429,10 +429,10 @@ class TLModel(nn.Module):
 
             i = i + 1
 
-        print(buckets)
+        #print(buckets)
         #all_hiddens = all_hiddens if not eos_tokens is None else hiddens
         
-        print(total_loss)
+        print('total_loss: ' + str(total_loss))
         return total_loss, hidden, np.array(entropy)
 
 
