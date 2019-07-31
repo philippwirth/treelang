@@ -161,6 +161,8 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
             seq_len = 1     # one to many (data has size 2, need this because targets!)
             data = get_batch(data_source, i, args, seq_len=seq_len)
+            mos_data = torch.cat((eos_tokens[0]*torch.ones(1).cuda().long()), data, 0)
+            print(data, mos_data)
 
             # evaluate mos for probability ranks
             h_mos = repackage_hidden(h_mos)
@@ -176,7 +178,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             
             # evaluate tl model
             h_tl = repackage_hidden(h_tl)
-            loss, h_tl, entropy = tl_model.evaluate(data[1:], h_tl, argsort, eos_tokens)
+            loss, h_tl, entropy = tl_model.evaluate(data, h_tl, argsort, eos_tokens)
 
             total_loss = total_loss + loss* min(seq_len, data_source.size(0))
             i = i + seq_len
