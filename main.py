@@ -218,6 +218,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
         # need a hidden state for tl and one for mos
         h_tl = tl_model.init_hidden(args.batch_size)
         h_mos = mos_model.init_hidden(args.batch_size)
+        data_keep = 5*torch.ones(1, args.batch_size).cuda().long()
         while i < train_data.size(0)-1:
 
             # get seq len from batch
@@ -234,10 +235,11 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
             # evaluate mos on data
             h_mos = repackage_hidden(h_mos)
-            mos_data = data.clone(); mos_data[mos_data >= 20] = 0 # ugly fix!!!!
+            mos_data = torch.cat((data_keep, data),0)[:-1]; mos_data[mos_data >= 20] = 0 # ugly fix!!!!
             log_prob, h_mos = mos_model(mos_data, h_mos)
 
             #print(torch.exp(log_prob))
+            print(data, mos_data)
 
             # get probability ranks from mos probability
             _, argsort = torch.sort(log_prob, descending=True)
