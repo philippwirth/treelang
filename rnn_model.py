@@ -166,7 +166,7 @@ class TLModel(nn.Module):
         for idx in range(0, self.nbuckets):
             partial_mask = data2 >= self.buckets[idx+1]
             mask = mask + partial_mask.long() if mask is not None else partial_mask.long()
-        return mask
+        return mask - 1
         #buckets = data.clone() // 100
         #buckets[buckets >= len(self.buckets)-1] = 0
         #return buckets
@@ -397,7 +397,7 @@ class TLModel(nn.Module):
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - self.buckets[bucket]
             
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
-            print(torch.exp(softmaxed[bucket]).item, bucket.item)
+            print(torch.exp(softmaxed[bucket]).item(), bucket.item())
             raw_loss = -softmaxed[bucket].item()   # TODOOOO
 
             all_words_times_W_i = all_words_times_W[argsort[i]]
