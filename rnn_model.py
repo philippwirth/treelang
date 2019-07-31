@@ -402,6 +402,7 @@ class TLModel(nn.Module):
 
             #print(i, data.size(), data[i] // 10)
             bucket = self._data2bucket(data[i], [argsort[i]])    # bucket of data in sorted array
+            print(bucket)
             buckets.append(bucket)
             idx = (argsort[i] == data[i]).nonzero()         # idx of data in sorted array
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - 1 - self.buckets[bucket]
