@@ -343,7 +343,7 @@ class TLModel(nn.Module):
         tombstones_emb = self.lockdrop(tombstones_emb, self.dropouti)
         #print(data.size(), data.view(-1).size())
         ts_softmaxed = self._logsoftmax_over_tombstones(self._data2bucket(data.view(-1), argsort), raw_output, tombstones_emb, tombstones_bias) 
-        print(self._data2bucket(data.view(-1)))
+        print(self._data2bucket(data.view(-1), argsort))
 
         # softmax over negative samples
         samples = self._sample_from_bucket(data, argsort)
