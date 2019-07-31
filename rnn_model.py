@@ -359,6 +359,7 @@ class TLModel(nn.Module):
         # overall softmax is sum of the two
         softmaxed = ts_softmaxed + ns_softmaxed
         softmax_mapped = -softmaxed.view(seq_len, bsz) * binary
+        print('training -softmax: ' + str(softmax_mapped))
         softmax_mapped = softmax_mapped / binary.sum()
 
         loss = softmax_mapped[softmax_mapped > 0].sum() if softmax_mapped.sum() > 1e-12 else softmax_mapped.mean()
