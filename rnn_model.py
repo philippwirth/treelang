@@ -375,6 +375,7 @@ class TLModel(nn.Module):
 
         entropy, hiddens, all_hiddens = [], [], []
         #data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])
+        p_per_b = torch.FloatTensor([0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.07, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.00001]).cuda()
         while i < data.size(0):
 
             hidden_times_U = torch.nn.functional.linear(hidden[0].repeat(self.ntoken, 1), weights_hh, bias_hh)
@@ -409,6 +410,7 @@ class TLModel(nn.Module):
        
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0) 
             raw_loss = raw_loss - softmaxed[idx - self.buckets[bucket]].item()
+            raw_loss = -torch.log(p_per_b[bucket])
 
             total_loss += raw_loss / data.size(0)
             entropy.append(raw_loss)
