@@ -163,11 +163,9 @@ class TLModel(nn.Module):
         data2 = data.clone(); data2[data2 >= 20] = 19#10000] = 9999             # ugly fix for padding tokens!!
         data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data2)])  # index of data in sorted array
         mask = None
-        print(data2)
         for idx in range(0, self.nbuckets):
             partial_mask = data2 >= self.buckets[idx+1]
             mask = mask + partial_mask.long() if mask is not None else partial_mask.long()
-        print(mask)
         return mask
         #buckets = data.clone() // 100
         #buckets[buckets >= len(self.buckets)-1] = 0
@@ -380,7 +378,7 @@ class TLModel(nn.Module):
         entropy, hiddens, all_hiddens = [], [], []
         #data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])
         buckets = []
-        while i < data.size(0):
+        while i < data.size(0)-1:
 
             hidden_times_U = torch.nn.functional.linear(hidden[0].repeat(self.ntoken, 1), weights_hh, bias_hh)
             
@@ -393,7 +391,7 @@ class TLModel(nn.Module):
             distance = self._apply_bias(distance, self.bias[self.ntoken:])
 
             #print(i, data.size(), data[i] // 10)
-            bucket = self._data2bucket(data[i], [argsort[i]])    # bucket of data in sorted array
+            bucket = self._data2bucket(data[i], [argsort[i+1]])    # bucket of data in sorted array
             buckets.append(bucket)
             idx = (argsort[i] == data[i]).nonzero()         # idx of data in sorted array
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - self.buckets[bucket]
