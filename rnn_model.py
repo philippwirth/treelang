@@ -217,7 +217,7 @@ class TLModel(nn.Module):
             all_words = torch.LongTensor([i for i in range(self.ntoken)]).cuda()
             samples_per_bucket = torch.zeros(self.nbuckets, self.nsamples).long().cuda()
             for i in range(self.nbuckets):
-                bucket_size = self.buckets[i+1] - self.buckets[i] if i < self.nbuckets-1 else self.ntoken - self.buckets[i]
+                bucket_size = self.buckets[i+1] - self.buckets[i] if i < self.nbuckets-1 else self.ntoken - 1 - self.buckets[i]
                 weights = torch.ones(bucket_size).cuda()
                 sampler = torch.utils.data.WeightedRandomSampler(weights, self.nsamples)
                 samples_per_bucket[i] = torch.LongTensor(list(sampler)).cuda() + self.buckets[i]
