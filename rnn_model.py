@@ -436,7 +436,6 @@ class TLModel(nn.Module):
             print(data[i].data.cpu().numpy()[0], eos_tokens, data[i].data.cpu().numpy()[0] in eos_tokens)
             if not eos_tokens is None and data[i].data.cpu().numpy()[0] in eos_tokens:
                 hidden = self.init_hidden(1)
-                print('here')
                 if dump_hiddens:
                     all_hiddens.append(hiddens)
                     hiddens = []
@@ -447,8 +446,7 @@ class TLModel(nn.Module):
             i = i + 1
 
         #all_hiddens = all_hiddens if not eos_tokens is None else hiddens
-        
-        print('total_loss: ' + str(total_loss))
+    
         return total_loss, hidden, np.array(entropy)
 
 
