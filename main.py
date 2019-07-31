@@ -172,7 +172,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             # cut log_probs to actual sequence length
             #log_prob = log_prob[:-1]
 
-            print(data, mos_data)
+            #print(data, mos_data)
             # get probability ranks from mos probability
             #print(torch.exp(log_prob), data[1:])
             _, argsort = torch.sort(log_prob, descending=True)
@@ -239,8 +239,8 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             mos_data = torch.cat((data_keep, data),0)[:-1]; mos_data[mos_data >= 20] = 0 # ugly fix!!!!
             log_prob, h_mos = mos_model(mos_data, h_mos)
 
-            print(torch.exp(log_prob))
-            print(data, mos_data)
+            #print(torch.exp(log_prob))
+            #print(data, mos_data)
 
             # get probability ranks from mos probability
             _, argsort = torch.sort(log_prob, descending=True)

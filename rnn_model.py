@@ -174,7 +174,7 @@ class TLModel(nn.Module):
     def _get_tombstones(self, argsort):
 
         nbuckets = self.nbuckets
-        ndynamic_buckets = 4   # atm the first few
+        ndynamic_buckets = 5   # atm the first few
 
         seq_len_times_bsz = argsort.size(0)
 
@@ -343,7 +343,8 @@ class TLModel(nn.Module):
         tombstones_emb = self.lockdrop(tombstones_emb, self.dropouti)
         #print(data.size(), data.view(-1).size())
         ts_softmaxed = self._logsoftmax_over_tombstones(self._data2bucket(data.view(-1), argsort), raw_output, tombstones_emb, tombstones_bias) 
-        print(self._data2bucket(data.view(-1), argsort))
+        print('training buckets: ' + str(self._data2bucket(data.view(-1), argsort)))
+        print('training -ts_softmax: ' + str(-ts_softmaxed))
 
         # softmax over negative samples
         samples = self._sample_from_bucket(data, argsort)
@@ -351,6 +352,7 @@ class TLModel(nn.Module):
         samples_emb = self.lockdrop(samples_emb, self.dropouti)
         
         ns_softmaxed = self._logsoftmax_over_neg_samples(d_pos, raw_output, samples, samples_emb)
+        print('training -ns_softmax: ' + str(-ns_softmax))
         
         # overall softmax is sum of the two
         softmaxed = ts_softmaxed + ns_softmaxed
