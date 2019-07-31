@@ -167,10 +167,10 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             h_mos = repackage_hidden(h_mos)
             log_prob, h_mos = mos_model(mos_data, h_mos)
 
-            print(torch.exp(log_prob), data, mos_data)
+            print(torch.exp(log_prob), data.view(-1), mos_data.view(-1))
 
             # cut log_probs to actual sequence length
-            log_prob = log_prob[:-1]
+            #log_prob = log_prob[:-1]
 
             # get probability ranks from mos probability
             #print(torch.exp(log_prob), data[1:])
