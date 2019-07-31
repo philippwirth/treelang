@@ -183,7 +183,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             loss, h_tl, entropy = tl_model.evaluate(data, h_tl, argsort, eos_tokens)
 
             total_loss = total_loss + loss * min(seq_len, data_source.size(0))
-            i = i + seq_len
+            i = i + seq_len + 1
 
         total_loss = total_loss / data_source.size(0)
 
@@ -239,15 +239,14 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             mos_data = torch.cat((data_keep, data),0)[:-1]; mos_data[mos_data >= 20] = 0 # ugly fix!!!!
             log_prob, h_mos = mos_model(mos_data, h_mos)
 
-            #print(torch.exp(log_prob))
-            #print(data, mos_data)
+            print(torch.exp(log_prob))
+            print(data, mos_data)
 
             # get probability ranks from mos probability
             _, argsort = torch.sort(log_prob, descending=True)
             argsort = argsort.view(-1, 20)#10000)
 
             #print(argsort.size())
-            print(data, mos_data)
 
             # Starting each batch, we detach the hidden state from how it was previously produced.
             # If we didn't, the model would try backpropagating all the way to start of the dataset. 
@@ -280,7 +279,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
                 start_time = time.time()
             ###
             batch += 1
-            i += seq_len
+            i += seq_len + 1
 
             #break
 
