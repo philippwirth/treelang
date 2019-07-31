@@ -181,7 +181,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             h_tl = repackage_hidden(h_tl)
             loss, h_tl, entropy = tl_model.evaluate(data, h_tl, argsort, eos_tokens)
 
-            total_loss = total_loss + loss* min(seq_len, data_source.size(0))
+            total_loss = total_loss + loss * min(seq_len, data_source.size(0))
             i = i + seq_len + 1
 
         total_loss = total_loss / data_source.size(0)
