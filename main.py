@@ -167,7 +167,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             h_mos = repackage_hidden(h_mos)
             log_prob, h_mos = mos_model(mos_data, h_mos)
 
-            print(torch.exp(log_prob), data)
+            print(torch.exp(log_prob), data, mos_data)
 
             # cut log_probs to actual sequence length
             log_prob = log_prob[:-1]
@@ -182,7 +182,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             loss, h_tl, entropy = tl_model.evaluate(data, h_tl, argsort, eos_tokens)
 
             total_loss = total_loss + loss* min(seq_len, data_source.size(0))
-            i = i + seq_len
+            i = i + seq_len + 1
 
         total_loss = total_loss / data_source.size(0)
 
