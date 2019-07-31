@@ -273,6 +273,8 @@ class TLModel(nn.Module):
         seq_len, bsz = d_pos.size()
         nsamples = samples.size(1)
 
+        print(samples)
+
         # positive sample distance
         #print(samples, nsamples)
         x = torch.zeros(1 + nsamples, seq_len*bsz).cuda()
