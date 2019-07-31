@@ -154,8 +154,6 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
         total_loss, i = 0, 0
         h_tl = tl_model.init_hidden(batch_size)
         h_mos = mos_model.init_hidden(batch_size)
-
-        data_keep = 5*torch.ones(1,1).cuda().long()
     
         while i < data_source.size(0)-1:
 
@@ -166,7 +164,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
             # evaluate mos for probability ranks
             h_mos = repackage_hidden(h_mos)
-            log_prob, h_mos = mos_model(data, h_mos)
+            log_prob, h_mos = mos_model(mos_data, h_mos)
 
             print(torch.exp(log_prob), data)
 
