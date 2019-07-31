@@ -121,7 +121,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
     # build treelang model and load mos model
     tl_model = TLModel(ntokens, rnn_config, reg_config, sample_config, threshold_config, bucket_config)
-    mos_name = 'mos/PTB-20190727-084637/model.pt'
+    mos_name = 'mos/TEST-20190731-093115/model.pt'
     with open(mos_name, 'rb') as f:
         mos_model = torch.load(f)
 
@@ -166,7 +166,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
             # get probability ranks from mos probability
             _, argsort = torch.sort(log_prob, descending=True)
-            argsort = argsort.view(-1, 10000)
+            argsort = argsort.view(-1, 10000) #
             
             # evaluate tl model
             h_tl = repackage_hidden(h_tl)
