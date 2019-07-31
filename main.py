@@ -170,13 +170,13 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             log_prob = log_prob[:-1]
 
             # get probability ranks from mos probability
-            print(torch.exp(log_prob), data)
+            print(torch.exp(log_prob), data[1:])
             _, argsort = torch.sort(log_prob, descending=True)
             argsort = argsort.view(-1, 20)##10000) #
             
             # evaluate tl model
             h_tl = repackage_hidden(h_tl)
-            loss, h_tl, entropy = tl_model.evaluate(data[:seq_len], h_tl, argsort, eos_tokens)
+            loss, h_tl, entropy = tl_model.evaluate(data[1:], h_tl, argsort, eos_tokens)
 
             total_loss = total_loss + loss* min(seq_len, data_source.size(0))
             i = i + seq_len
