@@ -166,7 +166,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
             # get probability ranks from mos probability
             _, argsort = torch.sort(log_prob, descending=True)
-            argsort = argsort.view(-1, 10000) #
+            argsort = argsort.view(-1, 21) #10000) #
             
             # evaluate tl model
             h_tl = repackage_hidden(h_tl)

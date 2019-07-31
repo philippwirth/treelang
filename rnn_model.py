@@ -160,7 +160,7 @@ class TLModel(nn.Module):
 
     def _data2bucket(self, data, argsort):
 
-        data2 = data.clone(); data2[data2 >= 10000] = 9999                      # ugly fix for padding tokens!!
+        data2 = data.clone(); data2[data2 >= 21] = 20#10000] = 9999                      # ugly fix for padding tokens!!
         data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data2)])  # index of data in sorted array
         mask = None
         for idx in range(0, self.nbuckets):
