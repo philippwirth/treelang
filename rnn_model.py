@@ -394,7 +394,7 @@ class TLModel(nn.Module):
             bucket = self._data2bucket(data[i], [argsort[i]])    # bucket of data in sorted array
             buckets.append(bucket)
             idx = (argsort[i] == data[i]).nonzero()         # idx of data in sorted array
-            bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - self.buckets[bucket]
+            bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - 1 - self.buckets[bucket]
             
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
             #print(torch.exp(softmaxed[bucket]).item(), bucket.item())
