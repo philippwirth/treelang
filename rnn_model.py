@@ -343,8 +343,6 @@ class TLModel(nn.Module):
         tombstones_emb = self.lockdrop(tombstones_emb, self.dropouti)
         #print(data.size(), data.view(-1).size())
         ts_softmaxed = self._logsoftmax_over_tombstones(self._data2bucket(data.view(-1), argsort), raw_output, tombstones_emb, tombstones_bias) 
-        print('training buckets: ' + str(self._data2bucket(data.view(-1), argsort)))
-        print('training -ts_softmax: ' + str(-ts_softmaxed))
 
         # softmax over negative samples
         samples = self._sample_from_bucket(data, argsort)
@@ -352,8 +350,8 @@ class TLModel(nn.Module):
         samples_emb = self.lockdrop(samples_emb, self.dropouti)
         
         ns_softmaxed = self._logsoftmax_over_neg_samples(d_pos, raw_output, samples, samples_emb)
-        p_per_b = torch.FloatTensor([1., 1., 0.33333, 0.2, 0.1]).cuda()
-        ns_softmaxed = torch.log(p_per_b[self._data2bucket(data.view(-1), argsort)]).view(1,-1)
+        #p_per_b = torch.FloatTensor([1., 1., 0.33333, 0.2, 0.1]).cuda()
+        #ns_softmaxed = torch.log(p_per_b[self._data2bucket(data.view(-1), argsort)]).view(1,-1)
         print('training -ns_softmax: ' + str(-ns_softmaxed))
         
         # overall softmax is sum of the two
