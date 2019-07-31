@@ -343,7 +343,8 @@ class TLModel(nn.Module):
         tombstones_emb = self.lockdrop(tombstones_emb, self.dropouti)
         #print(data.size(), data.view(-1).size())
         ts_softmaxed = self._logsoftmax_over_tombstones(self._data2bucket(data.view(-1), argsort), raw_output, tombstones_emb, tombstones_bias) 
-        
+        print(self._data2bucket(data.view(-1)))
+
         # softmax over negative samples
         samples = self._sample_from_bucket(data, argsort)
         samples_emb = embedded_dropout(self.encoder, samples, dropout=self.dropoute if self.training else 0)
@@ -400,7 +401,7 @@ class TLModel(nn.Module):
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - 1 - self.buckets[bucket]
             
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
-            print(torch.exp(softmaxed), bucket)
+            #print(torch.exp(softmaxed), bucket)
             #print(torch.exp(softmaxed[bucket]).item(), bucket.item())
             raw_loss = -softmaxed[bucket].item()   # TODOOOO
 
