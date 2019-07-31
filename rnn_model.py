@@ -427,7 +427,7 @@ class TLModel(nn.Module):
 
             i = i + 1
 
-        print(bucket)
+        print(buckets)
         #all_hiddens = all_hiddens if not eos_tokens is None else hiddens
         
         print(total_loss)
