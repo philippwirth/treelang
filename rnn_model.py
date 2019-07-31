@@ -352,7 +352,7 @@ class TLModel(nn.Module):
         samples_emb = self.lockdrop(samples_emb, self.dropouti)
         
         ns_softmaxed = self._logsoftmax_over_neg_samples(d_pos, raw_output, samples, samples_emb)
-        print('training -ns_softmax: ' + str(-ns_softmax))
+        print('training -ns_softmax: ' + str(-ns_softmaxed))
         
         # overall softmax is sum of the two
         softmaxed = ts_softmaxed + ns_softmaxed
