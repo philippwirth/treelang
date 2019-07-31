@@ -408,7 +408,7 @@ class TLModel(nn.Module):
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - 1 - self.buckets[bucket]
             
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
-            #print('eval -ts_softmax: ' + str(-softmaxed))
+            print('eval -ts_softmax: ' + str(-softmaxed))
             #print(torch.exp(softmaxed), bucket)
             #print(torch.exp(softmaxed[bucket]).item(), bucket.item())
             raw_loss = -softmaxed[bucket].item()   # TODOOOO
@@ -426,14 +426,14 @@ class TLModel(nn.Module):
             distance = self._apply_bias(distance, self.bias[self.buckets[bucket]:self.buckets[bucket]+bucket_size])
        
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
-            #print('eval -bucket_softmax: ' + str(-softmaxed))
+            print('eval -bucket_softmax: ' + str(-softmaxed))
             raw_loss = raw_loss - softmaxed[idx - self.buckets[bucket]].item()
             #raw_loss = -torch.log(torch.FloatTensor([1/bucket_size]).cuda())
 
             total_loss += raw_loss / data.size(0)
             entropy.append(raw_loss)
 
-            print(data[i].data.cpu().numpy()[0], eos_tokens, data[i].data.cpu().numpy()[0] in eos_tokens)
+            #print(data[i].data.cpu().numpy()[0], eos_tokens, data[i].data.cpu().numpy()[0] in eos_tokens)
             if not eos_tokens is None and data[i].data.cpu().numpy()[0] in eos_tokens:
                 hidden = self.init_hidden(1)
                 if dump_hiddens:
