@@ -274,7 +274,7 @@ class TLModel(nn.Module):
         nsamples = samples.size(1)
 
         # positive sample distance
-        print(samples, nsamples)
+        #print(samples, nsamples)
         x = torch.zeros(1 + nsamples, seq_len*bsz).cuda()
         x[0] = -d_pos.view(seq_len * bsz)
         
