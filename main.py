@@ -155,14 +155,16 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
         h_tl = tl_model.init_hidden(batch_size)
         h_mos = mos_model.init_hidden(batch_size)
 
-        data_keep = None
-        
+        data_keep = 5*torch.ones(1,1).cuda().long()
+    
         while i < data_source.size(0)-1:
 
             seq_len = 1     # one to many (data has size 2, need this because targets!)
             data = get_batch(data_source, i, args, seq_len=seq_len)
-            mos_data = torch.cat((5*torch.ones(1,1).cuda().long(), data), 0)
-            print(data, mos_data)
+            mos_data = torch.cat((data_keep, data), 0)[:-1] # no need to include eos token in mos_data
+            data_keep = data[-1]
+
+            print(mos_data, data)
 
             # evaluate mos for probability ranks
             h_mos = repackage_hidden(h_mos)
@@ -172,7 +174,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             log_prob = log_prob[:-1]
 
             # get probability ranks from mos probability
-            print(torch.exp(log_prob), data[1:])
+            #print(torch.exp(log_prob), data[1:])
             _, argsort = torch.sort(log_prob, descending=True)
             argsort = argsort.view(-1, 20)##10000) #
             
