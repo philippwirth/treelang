@@ -273,7 +273,7 @@ class TLModel(nn.Module):
         seq_len, bsz = d_pos.size()
         nsamples = samples.size(1)
 
-        print(samples)
+        print(samples.size())
 
         # positive sample distance
         #print(samples, nsamples)
