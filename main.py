@@ -121,7 +121,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
     # build treelang model and load mos model
     tl_model = TLModel(ntokens, rnn_config, reg_config, sample_config, threshold_config, bucket_config)
-    mos_name = 'mos/TEST-20190731-093115/model.pt'
+    mos_name = 'mos/PTB-20190727-084637/model.pt'
     with open(mos_name, 'rb') as f:
         mos_model = torch.load(f)
 
@@ -158,7 +158,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
         data_keep = 5*torch.ones(1,1).cuda().long()
         while i < data_source.size(0)-1:
 
-            seq_len = 5     # one to many (data has size 2, need this because targets!)
+            seq_len = args.bptt     # one to many (data has size 2, need this because targets!)
             data = get_batch(data_source, i, args, seq_len=seq_len)
             mos_data = torch.cat((data_keep, data), 0)[:-1] # no need to include eos token in mos_data
             data_keep = data[-1].view(1,1)
