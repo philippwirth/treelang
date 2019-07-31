@@ -388,7 +388,7 @@ class TLModel(nn.Module):
         entropy, hiddens, all_hiddens = [], [], []
         #data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data)])
         buckets = []
-        while i < data.size(0)-1:
+        while i < data.size(0):
 
             hidden_times_U = torch.nn.functional.linear(hidden[0].repeat(self.ntoken, 1), weights_hh, bias_hh)
             
