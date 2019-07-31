@@ -410,7 +410,7 @@ class TLModel(nn.Module):
        
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0) 
             raw_loss = raw_loss - softmaxed[idx - self.buckets[bucket]].item()
-            raw_loss = -torch.log(1/bucket_size)
+            raw_loss = -torch.log(torch.FloatTensor([1/bucket_size]).cuda())
 
             total_loss += raw_loss / data.size(0)
             entropy.append(raw_loss)
