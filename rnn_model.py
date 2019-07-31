@@ -228,6 +228,8 @@ class TLModel(nn.Module):
             # "translate samples"
             for i in range(argsort.size(0)):
                 samples[i] = argsort[i, samples[i]]
+
+            print(samples)
             return samples
 
     def _logsoftmax_over_tombstones(self, bucket_idxs, raw_output, ts_emb, ts_bias):
@@ -272,8 +274,6 @@ class TLModel(nn.Module):
 
         seq_len, bsz = d_pos.size()
         nsamples = samples.size(1)
-
-        print(samples.size())
 
         # positive sample distance
         #print(samples, nsamples)
