@@ -401,7 +401,7 @@ class TLModel(nn.Module):
             raw_loss = -softmaxed[bucket].item()   # TODOOOO
 
             all_words_times_W_i = all_words_times_W[argsort[i]]
-            print(bucket_size, all_words_times_W_i[self.buckets[bucket]:self.buckets[bucket]+bucket_size].size(), hidden_times_U[:bucket_size].size())
+            #print(bucket_size, all_words_times_W_i[self.buckets[bucket]:self.buckets[bucket]+bucket_size].size(), hidden_times_U[:bucket_size].size())
             output = self._forward(all_words_times_W_i[self.buckets[bucket]:self.buckets[bucket]+bucket_size], hidden_times_U[:bucket_size], hidden[0].repeat(bucket_size, 1))
 
             if dump_hiddens: pass#hiddens.append(output[data[i]].data.cpu().numpy())
@@ -430,7 +430,7 @@ class TLModel(nn.Module):
 
             i = i + 1
 
-        #print(buckets)
+        print(buckets)
         #all_hiddens = all_hiddens if not eos_tokens is None else hiddens
         
         print('total_loss: ' + str(total_loss))
