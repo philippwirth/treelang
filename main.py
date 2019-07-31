@@ -161,7 +161,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
 
             seq_len = 1     # one to many (data has size 2, need this because targets!)
             data = get_batch(data_source, i, args, seq_len=seq_len)
-            mos_data = torch.cat((eos_tokens[0]*torch.ones(1).cuda().long()), data, 0)
+            mos_data = torch.cat((5*torch.ones(1).cuda().long()), data, 0)
             print(data, mos_data)
 
             # evaluate mos for probability ranks
