@@ -353,7 +353,7 @@ class TLModel(nn.Module):
         
         ns_softmaxed = self._logsoftmax_over_neg_samples(d_pos, raw_output, samples, samples_emb)
         size_1_bucket_idxs = (self._data2bucket(data.view(-1), argsort) <= 2).nonzero()
-        ns_softmaxed[size_1_bucket_idxs] = 0
+        ns_softmaxed[size_1_bucket_idxs] *= 0
         print('training -ns_softmax: ' + str(-ns_softmaxed))
         
         # overall softmax is sum of the two
