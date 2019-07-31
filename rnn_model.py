@@ -174,7 +174,7 @@ class TLModel(nn.Module):
     def _get_tombstones(self, argsort):
 
         nbuckets = self.nbuckets
-        ndynamic_buckets = 15   # atm the first few
+        ndynamic_buckets = 22   # atm the first few
 
         seq_len_times_bsz = argsort.size(0)
 
