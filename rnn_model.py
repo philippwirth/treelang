@@ -228,12 +228,8 @@ class TLModel(nn.Module):
             # "translate samples"
             #print(argsort.size(), samples)
             for i in range(argsort.size(0)):
-                print(samples[i])
-                print(argsort[i])
-                print(argsort[i, samples[i]])
                 samples[i] = argsort[i, samples[i]]
 
-            print(samples)
             return samples
 
     def _logsoftmax_over_tombstones(self, bucket_idxs, raw_output, ts_emb, ts_bias):
@@ -404,6 +400,7 @@ class TLModel(nn.Module):
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - 1 - self.buckets[bucket]
             
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
+            print(-softmaxed[bucket].item())
             #print(torch.exp(softmaxed[bucket]).item(), bucket.item())
             raw_loss = -softmaxed[bucket].item()   # TODOOOO
 
@@ -437,7 +434,6 @@ class TLModel(nn.Module):
 
             i = i + 1
 
-        print(buckets)
         #all_hiddens = all_hiddens if not eos_tokens is None else hiddens
         
         print('total_loss: ' + str(total_loss))
