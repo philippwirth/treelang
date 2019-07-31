@@ -226,7 +226,7 @@ class TLModel(nn.Module):
             samples = samples_per_bucket[idxs.view(-1)]
 
             # "translate samples"
-            print(argsort.size(), samples.size())
+            print(argsort.size(), samples)
             for i in range(argsort.size(0)):
                 samples[i] = argsort[i, samples[i]]
 
