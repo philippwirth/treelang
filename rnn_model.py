@@ -435,6 +435,7 @@ class TLModel(nn.Module):
 
             if not eos_tokens is None and data[i].data.cpu().numpy()[0] in eos_tokens:
                 hidden = self.init_hidden(1)
+                print('here')
                 if dump_hiddens:
                     all_hiddens.append(hiddens)
                     hiddens = []
