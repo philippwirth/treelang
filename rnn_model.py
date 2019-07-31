@@ -160,11 +160,8 @@ class TLModel(nn.Module):
 
     def _data2bucket(self, data, argsort):
 
-        data2 = data.clone(); data2[data2 >= 20] = 19#10000] = 9999 
-        print(data2.size(), argsort.size())                    # ugly fix for padding tokens!!
-        print([(a == d).nonzero() for a, d in zip(argsort,data2)])
+        data2 = data.clone(); data2[data2 >= 20] = 19#10000] = 9999             # ugly fix for padding tokens!!
         data2 = torch.cat([(a == d).nonzero() for a, d in zip(argsort,data2)])  # index of data in sorted array
-        print(data2, data2.size())
         mask = None
         for idx in range(0, self.nbuckets):
             partial_mask = data2 >= self.buckets[idx+1]
@@ -341,7 +338,7 @@ class TLModel(nn.Module):
         # softmax over tombstones
         tombstones_emb, tombstones_bias = self._get_tombstones(argsort)
         tombstones_emb = self.lockdrop(tombstones_emb, self.dropouti)
-        print(data.size(), data.view(-1).size())
+        #print(data.size(), data.view(-1).size())
         ts_softmaxed = self._logsoftmax_over_tombstones(self._data2bucket(data.view(-1), argsort), raw_output, tombstones_emb, tombstones_bias) 
         
         # softmax over negative samples
