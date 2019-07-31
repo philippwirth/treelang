@@ -166,7 +166,8 @@ class TLModel(nn.Module):
         for idx in range(0, self.nbuckets):
             partial_mask = data2 >= self.buckets[idx+1]
             mask = mask + partial_mask.long() if mask is not None else partial_mask.long()
-        return mask - 1
+        print(mask)
+        return mask
         #buckets = data.clone() // 100
         #buckets[buckets >= len(self.buckets)-1] = 0
         #return buckets
