@@ -174,7 +174,7 @@ class TLModel(nn.Module):
     def _get_tombstones(self, argsort):
 
         nbuckets = self.nbuckets
-        ndynamic_buckets = 12   # atm the first few
+        ndynamic_buckets = 15   # atm the first few
 
         seq_len_times_bsz = argsort.size(0)
 
@@ -393,7 +393,6 @@ class TLModel(nn.Module):
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - self.buckets[bucket]
             
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
-            print(bucket, softmaxed)
             #print(left_idx, softmaxed)
             raw_loss = -softmaxed[bucket].item()   # TODOOOO
 
