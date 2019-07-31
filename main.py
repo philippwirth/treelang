@@ -231,7 +231,7 @@ def run(args, rnn_config, reg_config, threshold_config, sample_config, bucket_co
             mos_data = data.clone(); mos_data[mos_data >= 20] = 0 # ugly fix!!!!
             log_prob, h_mos = mos_model(mos_data, h_mos)
 
-            print(torch.exp(log_prob))
+            #print(torch.exp(log_prob))
 
             # get probability ranks from mos probability
             _, argsort = torch.sort(log_prob, descending=True)
