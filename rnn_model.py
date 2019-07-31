@@ -355,12 +355,12 @@ class TLModel(nn.Module):
         ns_softmaxed = ns_softmaxed * binary2
         #p_per_b = torch.FloatTensor([1., 1., 0.33333, 0.2, 0.1]).cuda()
         #ns_softmaxed = torch.log(p_per_b[self._data2bucket(data.view(-1), argsort)]).view(1,-1)
-        print('training -ns_softmax: ' + str(-ns_softmaxed))
+        #print('training -ns_softmax: ' + str(-ns_softmaxed))
         
         # overall softmax is sum of the two
         softmaxed = ts_softmaxed + ns_softmaxed
         softmax_mapped = -softmaxed.view(seq_len, bsz) * binary
-        print('training -softmax: ' + str(softmax_mapped))
+        #print('training -softmax: ' + str(softmax_mapped))
         softmax_mapped = softmax_mapped / binary.sum()
 
         loss = softmax_mapped[softmax_mapped > 0].sum() if softmax_mapped.sum() > 1e-12 else softmax_mapped.mean()
@@ -407,6 +407,7 @@ class TLModel(nn.Module):
             bucket_size = self.buckets[bucket+1] - self.buckets[bucket] if bucket < self.nbuckets-1 else self.ntoken - 1 - self.buckets[bucket]
             
             softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
+            print('eval -ts_softmax: ' + str(-softmaxed))
             #print(torch.exp(softmaxed), bucket)
             #print(torch.exp(softmaxed[bucket]).item(), bucket.item())
             raw_loss = -softmaxed[bucket].item()   # TODOOOO
@@ -423,7 +424,8 @@ class TLModel(nn.Module):
             distance = self._apply_temperature(distance)
             distance = self._apply_bias(distance, self.bias[self.buckets[bucket]:self.buckets[bucket]+bucket_size])
        
-            softmaxed = torch.nn.functional.log_softmax(-distance, dim=0) 
+            softmaxed = torch.nn.functional.log_softmax(-distance, dim=0)
+            print('eval -bucket_softmax: ' + str(-softmaxed))
             raw_loss = raw_loss - softmaxed[idx - self.buckets[bucket]].item()
             #raw_loss = -torch.log(torch.FloatTensor([1/bucket_size]).cuda())
 
